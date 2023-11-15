@@ -8,6 +8,7 @@ import (
 
 	nHTTP "github.com/adoublef/mvp/internal/network/http"
 	"github.com/adoublef/mvp/nats"
+	sql "github.com/adoublef/mvp/sqlite3"
 )
 
 var (
@@ -36,7 +37,7 @@ func (s *Server) Shutdown() error {
 }
 
 // A New Server defines parameters for running an HTTP server.
-func NewServer(addr string, nc *nats.Conn) (*Server, error) {
+func NewServer(addr string, nc *nats.Conn, db *sql.DB) (*Server, error) {
 	m := nHTTP.New()
 	s := &http.Server{
 		Addr:    addr,

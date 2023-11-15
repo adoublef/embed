@@ -11,6 +11,7 @@ import (
 	"github.com/adoublef/mvp/cmd/whiteboard/server"
 	eg "github.com/adoublef/mvp/errgroup"
 	"github.com/adoublef/mvp/nats"
+	sql "github.com/adoublef/mvp/sqlite3"
 )
 
 func main() {
@@ -28,6 +29,12 @@ func main() {
 }
 
 func run(ctx context.Context, o *Options) error {
+	db, err := sql.Open(o.DSN)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
 	ns, err := nats.NewServer()
 	if err != nil {
 		return err
@@ -40,7 +47,7 @@ func run(ctx context.Context, o *Options) error {
 	}
 	defer nc.Close()
 
-	s, err := server.NewServer(o.Addr, nc)
+	s, err := server.NewServer(o.Addr, nc, db)
 	if err != nil {
 		return err
 	}
@@ -58,6 +65,7 @@ func run(ctx context.Context, o *Options) error {
 
 type Options struct {
 	Addr string
+	DSN string
 }
 
 // Parse parses flags definitions and runtime environment variables
@@ -66,6 +74,7 @@ func parse() (*Options, error) {
 	o := &Options{}
 
 	fs.StringVar(&o.Addr, "addr", ":8080", "http listen address")
+	fs.StringVar(&o.DSN, "dsn", "main.db", "database path")
 	if err := fs.Parse(args); err != nil {
 		return nil, err
 	}
