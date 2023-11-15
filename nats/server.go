@@ -1,8 +1,9 @@
 package nats
 
 import (
-	"log"
+	"fmt"
 
+	"github.com/adoublef/mvp/log"
 	"github.com/cenkalti/backoff"
 	"github.com/nats-io/nats-server/v2/server"
 )
@@ -28,9 +29,11 @@ func (s *Server) Wait()  {
 
 // NewServer will setup a new embedded nats server.
 func NewServer() (*Server, error) {
-	ns, err := server.NewServer(&server.Options{})
+	ns, err := server.NewServer(&server.Options{
+		JetStream: true,
+	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("new nats server: %w", err)
 	}
 	ns.Start()
 	return &Server{ns}, nil

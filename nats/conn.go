@@ -1,6 +1,8 @@
 package nats
 
 import (
+	"fmt"
+
 	"github.com/nats-io/nats.go"
 )
 
@@ -21,7 +23,7 @@ func Connect(ns *Server) (*Conn, error) {
 		InProcessServer: ns.ns,
 	}.Connect()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("connect: %w", err)
 	}
 	
 	return &Conn{nc: nc}, nil
@@ -29,5 +31,9 @@ func Connect(ns *Server) (*Conn, error) {
 
 // JetStream returns a JetStreamContext for messaging and stream management. 
 func JetStream(nc *Conn) (JetStreamContext, error) {
-	return nc.nc.JetStream()
+	jsc, err := nc.nc.JetStream()
+	if err != nil {
+		return nil, fmt.Errorf("jet stream context: %w", err)
+	}
+	return jsc, nil
 }
