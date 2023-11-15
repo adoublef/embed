@@ -1,82 +1,55 @@
 package main
 
 import (
-	"context"
-	"flag"
-	"log"
 	"os"
-	"os/signal"
-	"syscall"
+	"sort"
+	"sync"
 
-	"github.com/adoublef/mvp/cmd/network/server"
-	eg "github.com/adoublef/mvp/errgroup"
-	"github.com/adoublef/mvp/nats"
-	sql "github.com/adoublef/mvp/sqlite3"
+	"github.com/adoublef/mvp/log"
+	"github.com/choria-io/fisk"
 )
 
 func main() {
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
-	defer cancel()
-
-	o, err := parse()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	if err := run(ctx, o); err != nil {
-		log.Fatalln(err)
+	if err := run(); err != nil {
+		log.Fatal(err)
 	}
 }
 
-func run(ctx context.Context, o *Options) error {
-	db, err := sql.Open(o.DSN)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-	
-	ns, err := nats.NewServer()
-	if err != nil {
-		return err
-	}
-	ns.Wait()
-	// add a nats connection
-	nc, err := nats.Connect(ns)
-	if err != nil {
-		return err
-	}
-	defer nc.Close()
+func run() error {
+	ncli := fisk.New("", "__EMPTY__")
+	// use charm for a pretty print
+	ncli.UsageWriter(os.Stdout)
+	ncli.HelpFlag.Short('h')
+	ncli.WithCheats().CheatCommand.Hidden()
 
-	s, err := server.NewServer(o.Addr, nc, db)
-	if err != nil {
-		return err
+	sort.Slice(commands, func(i int, j int) bool {
+		return commands[i].Name < commands[j].Name
+	})
+	for _, c := range commands {
+		c.Command(ncli)
 	}
 	
-	g := eg.New(ctx)
-	g.Go(func(ctx context.Context) error {
-		return s.ListenAndServe()
-	})
-	g.Go(func(ctx context.Context) error {
-		<-ctx.Done()
-		return s.Shutdown()
-	})
-	return g.Wait()
+	_, err := ncli.Parse(os.Args[1:])
+	return err
 }
 
-type Options struct {
-	Addr string
-	DSN string
+type command struct {
+	Name    string
+	Order   int
+	Command func(app commandHost)
 }
 
-// Parse parses flags definitions and runtime environment variables
-func parse() (*Options, error) {
-	fs, args := flag.NewFlagSet("", flag.ExitOnError), os.Args[1:]
-	o := &Options{}
+type commandHost interface {
+	Command(name string, help string) *fisk.CmdClause
+}
 
-	fs.StringVar(&o.Addr, "addr", ":8080", "http listen address")
-	fs.StringVar(&o.DSN, "dsn", "main.db", "database path")
-	if err := fs.Parse(args); err != nil {
-		return nil, err
-	}
-	return o, nil
+var (
+	commands = []*command{}
+	mu       sync.Mutex
+)
+
+func registerCommand(name string, order int, c func(app commandHost)) {
+	mu.Lock()
+	commands = append(commands, &command{name, order, c})
+	mu.Unlock()
 }
