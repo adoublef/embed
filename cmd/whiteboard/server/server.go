@@ -3,10 +3,10 @@ package server
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
+	wbHTTP "github.com/adoublef/mvp/internal/whiteboard/http"
 	"github.com/adoublef/mvp/nats"
 )
 
@@ -36,13 +36,10 @@ func (s *Server) Shutdown() error {
 
 // A New Server defines parameters for running an HTTP server.
 func NewServer(nc *nats.Conn) (*Server, error) {
+	m := wbHTTP.New()
 	s := &http.Server{
 		Addr:    ":8080",
-		Handler: handler,
+		Handler: m,
 	}
 	return &Server{s}, nil
 }
-
-var handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "ok")
-})
