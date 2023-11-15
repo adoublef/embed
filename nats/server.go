@@ -28,9 +28,13 @@ func (s *Server) Wait()  {
 }
 
 // NewServer will setup a new embedded nats server.
-func NewServer() (*Server, error) {
+func NewServer(js string) (*Server, error) {
 	ns, err := server.NewServer(&server.Options{
+		// ServerName: "",
+		Port: 4222,
+		// HTTPPort: 8222,
 		JetStream: true,
+		StoreDir: js,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("new nats server: %w", err)
