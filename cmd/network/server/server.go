@@ -27,19 +27,19 @@ func (s *Server) ListenAndServe() error {
 func (s *Server) Shutdown() error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	
+
 	err := s.s.Shutdown(ctx)
-	if err != nil && errors.Is(err, http.ErrServerClosed) {
+	if err != nil || !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
 	return nil
 }
 
 // A New Server defines parameters for running an HTTP server.
-func NewServer(nc *nats.Conn) (*Server, error) {
+func NewServer(addr string, nc *nats.Conn) (*Server, error) {
 	m := nHTTP.New()
 	s := &http.Server{
-		Addr:    ":8080",
+		Addr:    addr,
 		Handler: m,
 	}
 	return &Server{s}, nil

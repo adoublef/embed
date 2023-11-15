@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
+	"os"
 	"os/signal"
 	"syscall"
 
@@ -15,14 +17,17 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
 
-	// TODO parse flags
+	o, err := parse()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	if err := run(ctx); err != nil {
+	if err := run(ctx, o); err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func run(ctx context.Context) error {
+func run(ctx context.Context, o *Options) error {
 	ns, err := nats.NewServer()
 	if err != nil {
 		return err
@@ -35,7 +40,7 @@ func run(ctx context.Context) error {
 	}
 	defer nc.Close()
 
-	s, err := server.NewServer(nc)
+	s, err := server.NewServer(o.Addr, nc)
 	if err != nil {
 		return err
 	}
@@ -49,4 +54,20 @@ func run(ctx context.Context) error {
 		return s.Shutdown()
 	})
 	return g.Wait()
+}
+
+type Options struct {
+	Addr string
+}
+
+// Parse parses flags definitions and runtime environment variables
+func parse() (*Options, error) {
+	fs, args := flag.NewFlagSet("", flag.ExitOnError), os.Args[1:]
+	o := &Options{}
+
+	fs.StringVar(&o.Addr, "addr", ":8080", "http listen address")
+	if err := fs.Parse(args); err != nil {
+		return nil, err
+	}
+	return o, nil
 }
