@@ -5,10 +5,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/adoublef/mvp/cmd/whiteboard/server"
-	eg "github.com/adoublef/mvp/errgroup"
-	"github.com/adoublef/mvp/nats"
-	sql "github.com/adoublef/mvp/sqlite3"
+	"github.com/adoublef/embed/cmd/whiteboard/server"
+	eg "github.com/adoublef/embed/errgroup"
+	"github.com/adoublef/embed/nats"
+	sql "github.com/adoublef/embed/sqlite3"
 	"github.com/choria-io/fisk"
 )
 

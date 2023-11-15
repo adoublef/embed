@@ -5,7 +5,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/adoublef/mvp/log"
+	"github.com/adoublef/embed/log"
 	"github.com/choria-io/fisk"
 )
 

@@ -1,4 +1,4 @@
-module github.com/adoublef/mvp
+module github.com/adoublef/embed
 
 go 1.21.3
 

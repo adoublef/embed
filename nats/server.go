@@ -3,7 +3,7 @@ package nats
 import (
 	"fmt"
 
-	"github.com/adoublef/mvp/log"
+	"github.com/adoublef/embed/log"
 	"github.com/cenkalti/backoff"
 	"github.com/nats-io/nats-server/v2/server"
 )

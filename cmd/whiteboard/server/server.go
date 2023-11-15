@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	service "github.com/adoublef/mvp/internal/whiteboard/http"
-	"github.com/adoublef/mvp/nats"
-	sql "github.com/adoublef/mvp/sqlite3"
+	service "github.com/adoublef/embed/internal/whiteboard/http"
+	"github.com/adoublef/embed/nats"
+	sql "github.com/adoublef/embed/sqlite3"
 )
 
 type Server struct {
