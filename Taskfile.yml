@@ -1,0 +1,33 @@
+version: '3'
+
+vars:
+  CONFIG: docker-compose.yml
+
+tasks:
+  default:
+    desc: list tasks
+    cmds:
+      - task --list-all
+
+  cache:
+    desc: cache dependencies
+    cmds:
+      - go mod tidy
+
+  stop:
+    desc: terminate application
+    cmds:
+      - docker-compose -f {{.CONFIG}} down --volumes
+
+  start:
+    desc: run application
+    deps:
+      - stop
+      - cache
+    cmds:
+      - docker-compose -f {{.CONFIG}} up -d --build --force-recreate
+
+  logs:
+    desc: list logs
+    cmds:
+      - docker-compose logs -f
