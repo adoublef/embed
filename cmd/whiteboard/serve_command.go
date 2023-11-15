@@ -14,14 +14,16 @@ import (
 
 type serveCommand struct {
 	addr string
+	js string
 	dsn  string
 }
 
 func configureServeCommand(app commandHost) {
 	c := &serveCommand{}
 	serve := app.Command("serve", "Run application server").Alias("s").Action(c.serve)
-	serve.Flag("addr", "Listen address").PlaceHolder("Addr").StringVar(&c.addr)
-	serve.Flag("dsn", "Datasource name").PlaceHolder("DSN").StringVar(&c.dsn)
+	serve.Flag("addr", "Listen address").StringVar(&c.addr)
+	serve.Flag("js", "JetStream directory").StringVar(&c.js)
+	serve.Flag("dsn", "Datasource name").StringVar(&c.dsn)
 }
 
 func init() {
@@ -35,6 +37,9 @@ func (c *serveCommand) serve(_ *fisk.ParseContext) error {
 	if c.dsn == "" {
 		c.dsn = ":memory:"
 	}
+	if c.js == "" {
+		c.js = "/data/nats"
+	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
@@ -45,7 +50,7 @@ func (c *serveCommand) serve(_ *fisk.ParseContext) error {
 	}
 	defer db.Close()
 
-	ns, err := nats.NewServer()
+	ns, err := nats.NewServer(c.js)
 	if err != nil {
 		return err
 	}

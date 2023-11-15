@@ -44,7 +44,11 @@ func NewServer(addr string, nc *nats.Conn, db *sql.DB) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	m := service.New(db, kv)
+	t, err := service.T.Parse();
+	if  err != nil {
+		return nil, err
+	}
+	m := service.New(t, db, kv)
 	s := &http.Server{Addr: addr, Handler: m}
 	return &Server{s}, nil
 }
