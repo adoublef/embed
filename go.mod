@@ -25,6 +25,7 @@ require (
 	github.com/charmbracelet/log v0.3.0
 	github.com/choria-io/fisk v0.6.1
 	github.com/klauspost/compress v1.17.2 // indirect
+	github.com/maragudk/migrate v0.4.3
 	github.com/mattn/go-sqlite3 v1.14.18
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/nats-io/jwt/v2 v2.5.3 // indirect
