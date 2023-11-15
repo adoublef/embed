@@ -26,3 +26,8 @@ func Connect(ns *Server) (*Conn, error) {
 	
 	return &Conn{nc: nc}, nil
 }
+
+// JetStream returns a JetStreamContext for messaging and stream management. 
+func JetStream(nc *Conn) (JetStreamContext, error) {
+	return nc.nc.JetStream()
+}
