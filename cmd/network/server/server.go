@@ -6,13 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	nHTTP "github.com/adoublef/mvp/internal/network/http"
+	service "github.com/adoublef/mvp/internal/network/http"
 	"github.com/adoublef/mvp/nats"
 	sql "github.com/adoublef/mvp/sqlite3"
-)
-
-var (
-	timeout = 5 * time.Second
 )
 
 type Server struct {
@@ -26,7 +22,7 @@ func (s *Server) ListenAndServe() error {
 
 // Shutdown gracefully shuts down the server without interrupting any active connections.
 func (s *Server) Shutdown() error {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
 	err := s.s.Shutdown(ctx)
@@ -38,10 +34,17 @@ func (s *Server) Shutdown() error {
 
 // A New Server defines parameters for running an HTTP server.
 func NewServer(addr string, nc *nats.Conn, db *sql.DB) (*Server, error) {
-	m := nHTTP.New()
-	s := &http.Server{
-		Addr:    addr,
-		Handler: m,
+	jsc, err := nats.JetStream(nc)
+	if err != nil {
+		return nil, err
 	}
+	kv, err := nats.UpsertKV(jsc, &nats.KVConfig{
+		Bucket: "temp",
+	})
+	if err != nil {
+		return nil, err
+	}
+	m := service.New(db, kv)
+	s := &http.Server{Addr: addr, Handler: m}
 	return &Server{s}, nil
 }
