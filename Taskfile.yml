@@ -17,7 +17,7 @@ tasks:
   stop:
     desc: terminate application
     cmds:
-      - docker-compose -f {{.CONFIG}} down --volumes
+      - docker-compose down --volumes
 
   start:
     desc: run application
@@ -25,7 +25,7 @@ tasks:
       - stop
       - cache
     cmds:
-      - docker-compose -f {{.CONFIG}} up -d --build --force-recreate
+      - docker-compose up -d --build --force-recreate
 
   logs:
     desc: list logs

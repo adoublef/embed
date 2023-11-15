@@ -20,7 +20,7 @@ COPY . .
 RUN go build \
     -ldflags "-s -w -extldflags '-static'" \
     -buildvcs=false \
-    -o /usr/bin/ ./...
+    -o /usr/local/bin/ ./...
 
 FROM alpine:${ALPINE_VERSION} AS runtime
 WORKDIR /opt
@@ -29,5 +29,5 @@ ARG EXE_NAME
 COPY --from=build /usr/local/bin/${EXE_NAME} ./a
 
 # run migration scripts here?
-
+# RUN ./a migrate ${DSN}
 CMD ["./a", "s"]
