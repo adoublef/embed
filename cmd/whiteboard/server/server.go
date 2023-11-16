@@ -9,6 +9,9 @@ import (
 	service "github.com/adoublef/embed/internal/whiteboard/http"
 	"github.com/adoublef/embed/nats"
 	sql "github.com/adoublef/embed/sqlite3"
+	"github.com/adoublef/embed/static"
+	"github.com/adoublef/embed/template"
+	"github.com/go-chi/chi/v5"
 )
 
 type Server struct {
@@ -44,11 +47,12 @@ func NewServer(addr string, nc *nats.Conn, db *sql.DB) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	t, err := service.T.Parse();
+	t, err := service.T.Funcs(template.DefaultFuncs, static.FuncMap).Parse();
 	if  err != nil {
 		return nil, err
 	}
-	m := service.New(t, db, kv)
-	s := &http.Server{Addr: addr, Handler: m}
+	h := chi.NewMux()
+	h.Mount("/", service.New(t, db, kv))
+	s := &http.Server{Addr: addr, Handler: h}
 	return &Server{s}, nil
 }

@@ -38,7 +38,7 @@ func (c *serveCommand) serve(_ *fisk.ParseContext) error {
 		c.dsn = ":memory:"
 	}
 	if c.js == "" {
-		c.js = "/data/nats"
+		c.js = "."
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)

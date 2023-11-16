@@ -10,6 +10,9 @@ import (
 	service "github.com/adoublef/embed/internal/network/http"
 	"github.com/adoublef/embed/nats"
 	sql "github.com/adoublef/embed/sqlite3"
+	"github.com/adoublef/embed/static"
+	"github.com/adoublef/embed/template"
+	"github.com/go-chi/chi/v5"
 )
 
 type Server struct {
@@ -26,7 +29,7 @@ func (s *Server) ListenAndServe() error {
 
 // Shutdown gracefully shuts down the server without interrupting any active connections.
 func (s *Server) Shutdown() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	err := s.s.Shutdown(ctx)
@@ -48,11 +51,12 @@ func NewServer(addr string, nc *nats.Conn, db *sql.DB) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	t, err := service.T.Parse();
-	if  err != nil {
+	t, err := service.T.Funcs(template.DefaultFuncs, static.FuncMap).Parse()
+	if err != nil {
 		return nil, err
 	}
-	m := service.New(t, db, kv)
-	s := &http.Server{Addr: addr, Handler: m}
+	h := chi.NewMux()
+	h.Mount("/", service.New(t, db, kv))
+	s := &http.Server{Addr: addr, Handler: h}
 	return &Server{s}, nil
 }
