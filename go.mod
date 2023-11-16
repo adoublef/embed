@@ -21,9 +21,11 @@ require (
 )
 
 require (
+	github.com/benbjohnson/hashfs v0.2.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/charmbracelet/log v0.3.0
 	github.com/choria-io/fisk v0.6.1
+	github.com/go-chi/chi/v5 v5.0.10
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/maragudk/migrate v0.4.3
 	github.com/mattn/go-sqlite3 v1.14.18
