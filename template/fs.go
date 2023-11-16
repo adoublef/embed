@@ -5,22 +5,20 @@ import (
 	"io"
 	"io/fs"
 	"maps"
-	"net/http"
 	"os"
 )
 
 type FS struct {
-	fsys    fs.FS
-	pattern []string
-	funcs   template.FuncMap
+	fsys  fs.FS
+	funcs template.FuncMap
 }
 
-// Parse reads from the file system fs
-func (fsys *FS) Parse() (Template, error) {
-	return template.New("").Funcs(fsys.funcs).ParseFS(fsys.fsys, fsys.pattern...)
+// ParseFile reads from the file system fs
+func (fsys *FS) ParseFiles(patterns ...string) (Template, error) {
+	return template.New(patterns[0]).Funcs(fsys.funcs).ParseFS(fsys.fsys, patterns...)
 }
 
-// Funcs adds the elements of the argument map to the template's function map. 
+// Funcs adds the elements of the argument map to the template's function map.
 func (fsys *FS) Funcs(funcs ...map[string]any) *FS {
 	for _, f := range funcs {
 		maps.Copy(fsys.funcs, f)
@@ -29,20 +27,16 @@ func (fsys *FS) Funcs(funcs ...map[string]any) *FS {
 }
 
 // NewFS
-func NewFS(fsys fs.FS, pattern ...string) *FS {
-	return &FS{fsys: fsys, pattern: pattern, funcs: template.FuncMap{}}
+func NewFS(fsys fs.FS) *FS {
+	return &FS{fsys: fsys, funcs: template.FuncMap{}}
 }
 
 type Template interface {
-	ExecuteTemplate(wr io.Writer, name string, data any) error
+	ParseFS(fs fs.FS, patterns ...string) (*template.Template, error)
+	Execute(wr io.Writer, data any) error
 }
 
-func ExecuteHTTP(w http.ResponseWriter, t Template, name string, data any) {
-	err := t.ExecuteTemplate(w, name, data)
-	if err != nil {
-		http.Error(w, "Failed to render template", http.StatusUnprocessableEntity)
-	}
-}
+func ExecuteHTTP(fsys *FS, data any, filenames ...string) {}
 
 var DefaultFuncs = template.FuncMap{
 	"env": func(s string) string {
