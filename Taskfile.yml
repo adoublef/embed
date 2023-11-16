@@ -9,6 +9,12 @@ tasks:
     cmds:
       - task --list-all
 
+  htmx:
+    desc: install htmx@latest
+    cmds:
+      - curl -Ls -o static/htmx.min.js https://unpkg.com/htmx.org@1.9.8
+
+
   cache:
     desc: cache dependencies
     cmds:

@@ -17,9 +17,10 @@ type FS struct {
 
 // Parse reads from the file system fs
 func (fsys *FS) Parse() (Template, error) {
-	return template.New("").ParseFS(fsys.fsys, fsys.pattern...)
+	return template.New("").Funcs(fsys.funcs).ParseFS(fsys.fsys, fsys.pattern...)
 }
 
+// Funcs adds the elements of the argument map to the template's function map. 
 func (fsys *FS) Funcs(funcs ...map[string]any) *FS {
 	for _, f := range funcs {
 		maps.Copy(fsys.funcs, f)
