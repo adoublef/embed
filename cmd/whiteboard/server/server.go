@@ -53,6 +53,13 @@ func NewServer(addr string, nc *nats.Conn, db *sql.DB) (*Server, error) {
 	}
 	h := chi.NewMux()
 	h.Mount("/", service.New(t, db, kv))
+	h.Handle("/assets/*", http.StripPrefix("/assets/", static.Handler))
 	s := &http.Server{Addr: addr, Handler: h}
 	return &Server{s}, nil
 }
+
+
+/* 
+mux.Handle("/", http.RedirectHandler("/feed", http.StatusFound))
+	mux.Mount("/feed", service.New(t, db, nc))
+*/
