@@ -6,6 +6,7 @@ ARG ALPINE_VERSION=3.18
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS build
 WORKDIR /usr/src
 
+ARG EXE_NAME
 ENV CGO_ENABLED=1
 ENV GOOS=linux
 ENV GOARCH=amd64
@@ -20,12 +21,13 @@ COPY . .
 RUN go build \
     -ldflags "-s -w -extldflags '-static'" \
     -buildvcs=false \
-    -o /usr/local/bin/ ./...
+    -o /usr/local/bin/ ./cmd/${EXE_NAME}
 
 FROM alpine:${ALPINE_VERSION} AS runtime
 WORKDIR /opt
 
 ARG EXE_NAME
+
 COPY --from=build /usr/local/bin/${EXE_NAME} ./a
 
 # run migration scripts here?
