@@ -6,18 +6,23 @@ import (
 
 	"github.com/adoublef/embed/nats"
 	sql "github.com/adoublef/embed/sqlite3"
-	t "github.com/adoublef/embed/template"
+	"github.com/adoublef/embed/template"
+)
+
+var (
+	pageIndex = "index.html"
+	pagePost  = "post.html"
 )
 
 //go:embed all:*.html
 var embedFS embed.FS
-var T = t.NewFS(embedFS, "*.html")
+var T = template.NewFS(embedFS)
 
 type Service struct {
 	m  *http.ServeMux
 	kv *nats.KV
 	db *sql.DB
-	t  t.Template
+	fs *template.FS
 }
 
 func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -25,10 +30,10 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // A New Service will be created
-func New(t t.Template, db *sql.DB, kv *nats.KV) *Service {
+func New(fs *template.FS, db *sql.DB, kv *nats.KV) *Service {
 	s := Service{
 		m:  http.NewServeMux(),
-		t:  t,
+		fs: fs,
 		db: db,
 		kv: kv,
 	}
@@ -38,6 +43,21 @@ func New(t t.Template, db *sql.DB, kv *nats.KV) *Service {
 
 func (s *Service) routes() {
 	s.m.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		t.ExecuteHTTP(w, s.t, "index.html", nil)
+		t, err := s.fs.ParseFiles(pageIndex)
+		if err != nil {
+			http.Error(w, "Failed to parse", http.StatusUnprocessableEntity)
+			return 
+		}
+
+		t.Execute(w, nil)
+	})
+
+	s.m.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
+		t, err := s.fs.ParseFiles(pageIndex, pagePost)
+		if err != nil {
+			http.Error(w, "Failed to parse", http.StatusUnprocessableEntity)
+			return 
+		}
+		t.Execute(w, nil)
 	})
 }
