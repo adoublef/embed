@@ -51,13 +51,12 @@ func NewServer(addr string, nc *nats.Conn, db *sql.DB) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	t, err := service.T.Funcs(template.DefaultFuncs, static.FuncMap).Parse()
-	if err != nil {
-		return nil, err
-	}
-	h := chi.NewMux()
-	h.Mount("/", service.New(t, db, kv))
-	h.Handle("/static/*", http.StripPrefix("/static/", static.Handler))
-	s := &http.Server{Addr: addr, Handler: h}
+	fs := service.T.Funcs(template.DefaultFuncs, static.FuncMap)
+	
+	mux := chi.NewMux()
+	mux.Mount("/", service.New(fs, db, kv))
+	mux.Handle("/static/*", http.StripPrefix("/static/", static.Handler))
+	
+	s := &http.Server{Addr: addr, Handler: mux}
 	return &Server{s}, nil
 }
